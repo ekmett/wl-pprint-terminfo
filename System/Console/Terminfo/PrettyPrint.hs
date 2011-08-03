@@ -9,6 +9,17 @@ module System.Console.Terminfo.PrettyPrint
   , protected
   , invisible
   , dim
+  , red
+  , black
+  , green
+  , blue
+  , yellow
+  , magenta
+  , cyan
+  , white
+  -- * Color Pretty Printer
+  , displayDoc
+  
   , soft
   , foreground
   , background
@@ -16,13 +27,13 @@ module System.Console.Terminfo.PrettyPrint
   , ring
   , evalTermState
   , displayCap
-  , displayDoc
   ) where
 
 import Text.PrettyPrint.Leijen.Extras
 import System.Console.Terminfo.Color
 import System.Console.Terminfo.Effects
 import System.Console.Terminfo.Base
+import System.Console.Terminfo.Cursor
 import Data.Traversable
 import Control.Applicative
 import Control.Monad
@@ -45,6 +56,7 @@ instance Eq Colour where
   Colour White == Colour White = True
   Colour (ColorNumber n) == Colour (ColorNumber m) = n == m
   _ == _ = False
+
 
 data PushCommand
  = Bold
@@ -114,7 +126,9 @@ eval Pop = do
   where 
    replay xs = do 
      l <- lift allAttributesOff 
+     s <- get
      r <- foldr (<#>) mempty <$> traverse (eval . Push) (reverse xs)
+     put s
      return $ l <#> r
 
 tryTerm :: MonadPlus m => m TermOutput -> m TermOutput
@@ -126,7 +140,13 @@ with cmd = pure (Push cmd) `enclose` pure Pop
 soft :: PushCommand -> PushCommand
 soft l = Else l Nop
 
-blink, bold, underline, standout, reversed, protected, invisible, dim :: Doc Command -> Doc Command
+foreground, background :: Color -> Doc Command -> Doc Command
+foreground n = with (soft (Foreground (Colour n)))
+background n = with (soft (Background (Colour n)))
+
+red, black, green, yellow, blue, cyan, white, blink, bold, underline, 
+ standout, reversed, protected, invisible, dim :: Doc Command -> Doc Command
+
 blink      = with (soft Blink)
 bold       = with (soft Bold)
 underline  = with (soft Underline)
@@ -135,9 +155,15 @@ protected  = with (soft Protected)
 invisible  = with (soft Invisible)
 dim        = with (soft Dim) 
 standout   = with (soft Standout)
-foreground, background :: Color -> Doc Command -> Doc Command
-foreground n = with (soft (Foreground (Colour n)))
-background n = with (soft (Background (Colour n)))
+
+red = foreground Red
+black = foreground Black
+green = foreground Green
+yellow = foreground Yellow
+blue = foreground Blue
+magenta = foreground Magenta
+cyan = foreground Cyan
+white = foreground White
 
 displayCap :: SimpleDoc Command -> StateT TermState Capability TermOutput
 displayCap = go where
@@ -163,10 +189,20 @@ kludgeWindowSize = do
 displayDoc :: Float -> Doc Command -> IO ()
 displayDoc ribbon doc = do
     term <- setupTermFromEnv
-    cols <- kludgeWindowSize `mplus` return 80
-    let sdoc = renderPretty ribbon cols doc
-    colored term sdoc `mplus` displayIO stdout sdoc
+    displayDoc' term ribbon doc
+
+displayDoc' :: Terminal -> Float -> Doc Command -> IO ()
+displayDoc' term ribbon doc = do
+ cols <- kludgeWindowSize `mplus` 
+         return (maybe 80 id (getCapability term termColumns))
+ displayDoc'' term ribbon cols doc
+
+displayDoc'' :: Terminal -> Float -> Int -> Doc Command -> IO ()
+displayDoc'' term ribbon cols doc = colored term sdoc 
+                            `mplus` displayIO stdout sdoc
   where 
+    sdoc = renderPretty ribbon cols doc
     colored term sdoc = case getCapability term $ evalTermState $ displayCap sdoc of
       Just output -> runTermOutput term output
       Nothing     -> throwIO $ AssertionFailed "missing capability" -- TODO: downgrade
+  
