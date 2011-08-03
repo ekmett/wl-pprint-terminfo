@@ -54,20 +54,6 @@ import Control.Monad.Trans.Class
 import Control.Exception (finally)
 import System.IO (stdout)
 
-newtype Colour = Colour { color :: Color }
-
-instance Eq Colour where
-  Colour Black == Colour Black = True
-  Colour Red == Colour Red = True
-  Colour Green == Colour Green = True
-  Colour Yellow == Colour Yellow = True
-  Colour Blue == Colour Blue = True
-  Colour Magenta == Colour Magenta = True
-  Colour Cyan == Colour Cyan = True
-  Colour White == Colour White = True
-  Colour (ColorNumber n) == Colour (ColorNumber m) = n == m
-  _ == _ = False
-
 
 data ScopedEffect
  = Bold
@@ -78,8 +64,8 @@ data ScopedEffect
  | Dim
  | Invisible
  | Protected
- | Foreground Colour
- | Background Colour
+ | Foreground Color
+ | Background Color
  | Else ScopedEffect ScopedEffect
  | Nop
  deriving (Eq)
@@ -110,11 +96,11 @@ eval (Push Bold)           = modify (Bold:) *> lift boldOn
 eval (Push (Foreground n)) = do
   modify (Foreground n:) 
   f <- lift setForegroundColor
-  return $ f $ color n
+  return (f n)
 eval (Push (Background n)) = do
   modify (Background n:)
   f <- lift setBackgroundColor
-  return $ f $ color n
+  return (f n)
 eval (Push Invisible)      = modify (Invisible:) *> lift invisibleOn
 eval (Push Dim)            = modify (Dim:) *> lift dimOn
 eval (Push Underline)      = modify (Underline:) *> lift enterUnderlineMode
@@ -156,8 +142,8 @@ soft :: ScopedEffect -> ScopedEffect
 soft l = Else l Nop
 
 foreground, background :: Color -> TermDoc -> TermDoc
-foreground n = with (soft (Foreground (Colour n)))
-background n = with (soft (Background (Colour n)))
+foreground n = with (soft (Foreground n))
+background n = with (soft (Background n))
 
 red, black, green, yellow, blue, magenta, cyan, white, blink, bold, underline, 
  standout, reversed, protected, invisible, dim :: TermDoc -> TermDoc
