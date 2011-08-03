@@ -122,6 +122,7 @@ eval Pop = do
   flip mplus (replay ts') $ case ts of 
     Standout:_  -> lift exitStandoutMode
     Underline:_ -> lift exitUnderlineMode
+    Nop:_       -> return mempty
     _           -> mzero
   where 
    replay xs = do 
