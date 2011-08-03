@@ -1,14 +1,21 @@
 module System.Console.Terminfo.PrettyPrint
-  ( PushCommand(..)
+  ( 
+  -- * Raw Effect (requires the effect be present)
+    ScopedEffect(..)
   , with
-  , blink
-  , bold
-  , underline
-  , standout
-  , reversed
-  , protected
-  , invisible
-  , dim
+  , Effect(..) -- unpaired effects
+  -- ** graceful feature degradation
+  , soft
+  -- ** Effects (built with soft)
+  , blink -- with (soft Blink)
+  , bold  -- with (soft Bold)
+  , underline -- with (soft Underline)
+  , standout -- with (soft Standout)
+  , reversed -- with (soft Reversed)
+  , protected -- with (soft Protected)
+  , invisible -- with (soft Invisible)
+  , dim -- with (soft Dim)
+  -- ** Colors (built with soft)
   , red
   , black
   , green
@@ -17,14 +24,18 @@ module System.Console.Terminfo.PrettyPrint
   , magenta
   , cyan
   , white
-  -- * Color Pretty Printer
-  , displayDoc
-  
-  , soft
   , foreground
   , background
+  -- ** Ringing bells
   , Bell(..)
   , ring
+  -- * A Color Pretty Printer
+  , TermDoc
+  , displayDoc
+  , displayDoc'
+  , displayDoc''
+  -- * 
+  , SimpleTermDoc
   , evalTermState
   , displayCap
   ) where
@@ -40,7 +51,7 @@ import Control.Monad
 import Control.Monad.Trans.State
 import UI.HSCurses.Curses (initScr, scrSize, endWin)
 import Control.Monad.Trans.Class
-import Control.Exception (finally, throwIO, AssertionFailed(..))
+import Control.Exception (finally)
 import System.IO (stdout)
 
 newtype Colour = Colour { color :: Color }
@@ -58,7 +69,7 @@ instance Eq Colour where
   _ == _ = False
 
 
-data PushCommand
+data ScopedEffect
  = Bold
  | Standout
  | Underline
@@ -69,7 +80,7 @@ data PushCommand
  | Protected
  | Foreground Colour
  | Background Colour
- | Else PushCommand PushCommand
+ | Else ScopedEffect ScopedEffect
  | Nop
  deriving (Eq)
 
@@ -80,18 +91,18 @@ data Bell
   | AudibleBellPreferred
   deriving (Eq,Ord,Show,Enum)
 
-data Command 
-  = Push PushCommand
+data Effect 
+  = Push ScopedEffect
   | Pop
   | Ring Bell -- visual bell ok, audible bell ok, 
   deriving (Eq)
 
-type TermState = [PushCommand]
+type TermState = [ScopedEffect]
 
-ring :: Bell -> Doc Command
+ring :: Bell -> TermDoc
 ring b = pure (Ring b)
 
-eval :: Command -> StateT TermState Capability TermOutput
+eval :: Effect -> StateT TermState Capability TermOutput
 eval (Push Blink)          = modify (Blink:) *> lift blinkOn
 eval (Push Reverse)        = modify (Reverse:) *> lift reverseOn
 eval (Push Protected)      = modify (Protected:) *> lift protectedOn
@@ -132,21 +143,24 @@ eval Pop = do
      put s
      return $ l <#> r
 
+type TermDoc = Doc Effect
+type SimpleTermDoc = SimpleDoc Effect
+
 tryTerm :: MonadPlus m => m TermOutput -> m TermOutput
 tryTerm m = m `mplus` return mempty
 
-with :: PushCommand -> Doc Command -> Doc Command
+with :: ScopedEffect -> TermDoc -> TermDoc
 with cmd = pure (Push cmd) `enclose` pure Pop
 
-soft :: PushCommand -> PushCommand
+soft :: ScopedEffect -> ScopedEffect
 soft l = Else l Nop
 
-foreground, background :: Color -> Doc Command -> Doc Command
+foreground, background :: Color -> TermDoc -> TermDoc
 foreground n = with (soft (Foreground (Colour n)))
 background n = with (soft (Background (Colour n)))
 
-red, black, green, yellow, blue, cyan, white, blink, bold, underline, 
- standout, reversed, protected, invisible, dim :: Doc Command -> Doc Command
+red, black, green, yellow, blue, magenta, cyan, white, blink, bold, underline, 
+ standout, reversed, protected, invisible, dim :: TermDoc -> TermDoc
 
 blink      = with (soft Blink)
 bold       = with (soft Bold)
@@ -166,7 +180,7 @@ magenta = foreground Magenta
 cyan = foreground Cyan
 white = foreground White
 
-displayCap :: SimpleDoc Command -> StateT TermState Capability TermOutput
+displayCap :: SimpleTermDoc -> StateT TermState Capability TermOutput
 displayCap = go where
   go SEmpty        = return mempty
   go (SChar c x)   = (termText [c] <#>) <$> go x
@@ -187,23 +201,20 @@ kludgeWindowSize = do
    snd <$> scrSize
  `finally` endWin
 
-displayDoc :: Float -> Doc Command -> IO ()
+displayDoc :: Float -> TermDoc -> IO ()
 displayDoc ribbon doc = do
-    term <- setupTermFromEnv
-    displayDoc' term ribbon doc
+  term <- setupTermFromEnv
+  displayDoc' term ribbon doc
 
-displayDoc' :: Terminal -> Float -> Doc Command -> IO ()
+displayDoc' :: Terminal -> Float -> TermDoc -> IO ()
 displayDoc' term ribbon doc = do
- cols <- kludgeWindowSize `mplus` 
-         return (maybe 80 id (getCapability term termColumns))
- displayDoc'' term ribbon cols doc
+  cols <- kludgeWindowSize `mplus` 
+          return (maybe 80 id (getCapability term termColumns))
+  displayDoc'' term ribbon cols doc
 
-displayDoc'' :: Terminal -> Float -> Int -> Doc Command -> IO ()
-displayDoc'' term ribbon cols doc = colored term sdoc 
-                            `mplus` displayIO stdout sdoc
-  where 
-    sdoc = renderPretty ribbon cols doc
-    colored term sdoc = case getCapability term $ evalTermState $ displayCap sdoc of
-      Just output -> runTermOutput term output
-      Nothing     -> throwIO $ AssertionFailed "missing capability" -- TODO: downgrade
-  
+displayDoc'' :: Terminal -> Float -> Int -> TermDoc -> IO ()
+displayDoc'' term ribbon cols doc = 
+  case getCapability term $ evalTermState $ displayCap sdoc of
+    Just output -> runTermOutput term output
+    Nothing     -> displayIO stdout sdoc
+  where sdoc = renderPretty ribbon cols doc
