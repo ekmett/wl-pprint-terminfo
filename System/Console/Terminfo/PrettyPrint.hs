@@ -44,7 +44,7 @@ module System.Console.Terminfo.PrettyPrint
   , displayCap
   ) where
 
-import Text.PrettyPrint.Leijen.Extras
+import Text.PrettyPrint.Free
 import System.Console.Terminfo.Color
 import System.Console.Terminfo.Effects
 import System.Console.Terminfo.Base
