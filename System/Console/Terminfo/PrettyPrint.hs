@@ -4,7 +4,7 @@ module System.Console.Terminfo.PrettyPrint
     ScopedEffect(..)
   , with
   , Effect(..) -- unpaired effects
-  -- ** graceful feature degradation
+  -- ** Graceful degradation
   , soft
   -- ** Effects (built with soft)
   , blink -- with (soft Blink)
@@ -31,12 +31,14 @@ module System.Console.Terminfo.PrettyPrint
   , ring
   -- * A Color Pretty Printer
   , TermDoc
+  , display
+  -- ** Progressively less magical formatting
   , displayDoc
   , displayDoc'
   , displayDoc''
-  -- * A Classy Interface
+  -- ** A Classy Interface
   , PrettyTerm(..)
-  -- * Evaluation
+  -- ** Evaluation
   , SimpleTermDoc
   , evalTermState
   , displayCap
@@ -188,6 +190,9 @@ kludgeWindowSize = do
    _ <- initScr
    snd <$> scrSize
  `finally` endWin
+
+display :: TermDoc -> IO ()
+display = displayDoc 0.6
 
 displayDoc :: Float -> TermDoc -> IO ()
 displayDoc ribbon doc = do
