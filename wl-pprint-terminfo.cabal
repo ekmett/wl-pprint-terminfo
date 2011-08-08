@@ -1,6 +1,6 @@
 name:          wl-pprint-terminfo
 category:      Control, Monads, Text
-version:       0.2.1.3
+version:       0.2.2
 cabal-version: >= 1.6
 license:       BSD3
 license-file:  LICENSE

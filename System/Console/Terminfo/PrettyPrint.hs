@@ -34,7 +34,9 @@ module System.Console.Terminfo.PrettyPrint
   , displayDoc
   , displayDoc'
   , displayDoc''
-  -- * 
+  -- * A Classy Interface
+  , PrettyTerm(..)
+  -- * Evaluation
   , SimpleTermDoc
   , evalTermState
   , displayCap
@@ -204,3 +206,32 @@ displayDoc'' term ribbon cols doc =
     Just output -> runTermOutput term output
     Nothing     -> displayIO stdout sdoc
   where sdoc = renderPretty ribbon cols doc
+
+class Pretty t => PrettyTerm t where
+  prettyTerm :: t -> TermDoc
+  prettyTerm = pretty
+  prettyTermList :: [t] -> TermDoc
+  prettyTermList = list . map prettyTerm
+
+instance PrettyTerm t => PrettyTerm [t] where
+  prettyTerm = prettyTermList
+
+instance PrettyTerm Char where 
+  prettyTerm = char
+  prettyTermList = string
+
+instance PrettyTerm Int 
+instance PrettyTerm Bool
+instance PrettyTerm Integer
+instance PrettyTerm Float
+instance PrettyTerm Double
+
+instance (PrettyTerm a,PrettyTerm b) => PrettyTerm (a,b) where
+  prettyTerm (x,y) = tupled [prettyTerm x, prettyTerm y]
+
+instance (PrettyTerm a,PrettyTerm b,PrettyTerm c) => PrettyTerm (a,b,c) where
+  prettyTerm (x,y,z) = tupled [prettyTerm x, prettyTerm y, prettyTerm z]
+
+instance PrettyTerm a => PrettyTerm (Maybe a) where
+  prettyTerm Nothing  = empty
+  prettyTerm (Just x) = prettyTerm x
