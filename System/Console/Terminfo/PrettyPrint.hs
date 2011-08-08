@@ -4,6 +4,7 @@ module System.Console.Terminfo.PrettyPrint
     ScopedEffect(..)
   , with
   , Effect(..) -- unpaired effects
+  , HasEffect(..)
   -- ** Graceful degradation
   , soft
   -- ** Effects (built with soft)
@@ -32,6 +33,7 @@ module System.Console.Terminfo.PrettyPrint
   -- * A Color Pretty Printer
   , TermDoc
   , display
+  , displayLn
   -- ** Progressively less magical formatting
   , displayDoc
   , displayDoc'
@@ -136,6 +138,12 @@ eval Pop = do
 type TermDoc = Doc Effect
 type SimpleTermDoc = SimpleDoc Effect
 
+class HasEffect e where
+  effect :: e -> Effect
+
+instance HasEffect Effect where
+  effect = id
+
 tryTerm :: MonadPlus m => m TermOutput -> m TermOutput
 tryTerm m = m `mplus` return mempty
 
@@ -191,26 +199,29 @@ kludgeWindowSize = do
    snd <$> scrSize
  `finally` endWin
 
-display :: TermDoc -> IO ()
+displayLn :: PrettyTerm t => t -> IO ()
+displayLn t = displayDoc 0.6 (prettyTerm t <> linebreak)
+
+display :: PrettyTerm t => t -> IO ()
 display = displayDoc 0.6
 
-displayDoc :: Float -> TermDoc -> IO ()
+displayDoc :: PrettyTerm t => Float -> t -> IO ()
 displayDoc ribbon doc = do
   term <- setupTermFromEnv
   displayDoc' term ribbon doc
 
-displayDoc' :: Terminal -> Float -> TermDoc -> IO ()
+displayDoc' :: PrettyTerm t => Terminal -> Float -> t -> IO ()
 displayDoc' term ribbon doc = do
   cols <- kludgeWindowSize `mplus` 
           return (maybe 80 id (getCapability term termColumns))
   displayDoc'' term ribbon cols doc
 
-displayDoc'' :: Terminal -> Float -> Int -> TermDoc -> IO ()
+displayDoc'' :: PrettyTerm t => Terminal -> Float -> Int -> t -> IO ()
 displayDoc'' term ribbon cols doc = 
   case getCapability term $ evalTermState $ displayCap sdoc of
     Just output -> runTermOutput term output
     Nothing     -> displayIO stdout sdoc
-  where sdoc = renderPretty ribbon cols doc
+  where sdoc = renderPretty ribbon cols (prettyTerm doc)
 
 class Pretty t => PrettyTerm t where
   prettyTerm :: t -> TermDoc
@@ -225,6 +236,10 @@ instance PrettyTerm Char where
   prettyTerm = char
   prettyTermList = string
 
+instance HasEffect e => PrettyTerm (Doc e) where
+  prettyTerm = fmap effect
+  prettyTermList = list . map (fmap effect)
+  
 instance PrettyTerm Int 
 instance PrettyTerm Bool
 instance PrettyTerm Integer
