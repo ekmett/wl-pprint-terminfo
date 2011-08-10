@@ -245,7 +245,7 @@ instance PrettyTerm Bool
 instance PrettyTerm Integer
 instance PrettyTerm Float
 instance PrettyTerm Double
-
+instance PrettyTerm ()
 instance (PrettyTerm a,PrettyTerm b) => PrettyTerm (a,b) where
   prettyTerm (x,y) = tupled [prettyTerm x, prettyTerm y]
 
