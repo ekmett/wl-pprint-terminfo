@@ -197,7 +197,7 @@ kludgeWindowSize :: IO Int
 kludgeWindowSize = do
    _ <- initScr
    s <- snd <$> scrSize
-   guard $ s >= 30 && s < 320
+   s <$ guard (s >= 30 && s < 320)
  `finally` endWin
 
 displayLn :: PrettyTerm t => t -> IO ()
