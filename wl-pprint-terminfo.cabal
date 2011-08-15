@@ -1,6 +1,6 @@
 name:          wl-pprint-terminfo
 category:      Control, Monads, Text
-version:       0.5.1
+version:       0.5.2
 cabal-version: >= 1.6
 license:       BSD3
 license-file:  LICENSE
@@ -22,7 +22,8 @@ library
   build-depends: 
     base             >= 4     && < 5,
     semigroups       >= 0.7.1 && < 0.8,
-    wl-pprint-extras >= 1.4   && < 1.5,
+    containers       >= 0.4   && < 0.5,
+    wl-pprint-extras >= 1.4.1 && < 1.5,
     hscurses         >= 1.4   && < 1.5,
     terminfo         >= 0.3.2 && < 0.4,
     transformers     >= 0.2.2 && < 0.3

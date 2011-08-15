@@ -51,7 +51,11 @@ import System.Console.Terminfo.Color
 import System.Console.Terminfo.Effects
 import System.Console.Terminfo.Base
 import System.Console.Terminfo.Cursor
+import Data.Foldable (toList)
 import Data.Traversable
+import Data.Sequence (Seq)
+import Numeric.Natural (Natural)
+import Data.List.NonEmpty (NonEmpty)
 import Control.Applicative
 import Control.Monad
 import Control.Monad.Trans.State
@@ -247,6 +251,14 @@ instance PrettyTerm Integer
 instance PrettyTerm Float
 instance PrettyTerm Double
 instance PrettyTerm ()
+instance PrettyTerm Natural
+
+instance PrettyTerm a => PrettyTerm (Seq a) where
+  prettyTerm = prettyTermList . toList
+
+instance PrettyTerm a => PrettyTerm (NonEmpty a) where
+  prettyTerm = prettyTermList . toList 
+
 instance (PrettyTerm a,PrettyTerm b) => PrettyTerm (a,b) where
   prettyTerm (x,y) = tupled [prettyTerm x, prettyTerm y]
 
