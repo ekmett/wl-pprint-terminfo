@@ -1,21 +1,26 @@
-name:          wl-pprint-terminfo
-category:      Control, Monads, Text
-version:       0.6
-cabal-version: >= 1.6
-license:       BSD3
-license-file:  LICENSE
-author:        Edward A. Kmett
-maintainer:    Edward A. Kmett <ekmett@gmail.com>
-stability:     experimental
-homepage:      git://github.com/ekmett/wl-pprint-terminfo/
-copyright:     Copyright (C) 2011 Edward A. Kmett
-synopsis:      A color pretty printer with terminfo support
-description:   A color pretty printer with terminfo support
-build-type:    Simple
+name:               wl-pprint-terminfo
+category:           Control, Monads, Text
+version:            0.7.0
+cabal-version:      >= 1.6
+license:            BSD3
+license-file:       LICENSE
+author:             Edward A. Kmett
+maintainer:         Edward A. Kmett <ekmett@gmail.com>
+stability:          experimental
+homepage:           git://github.com/ekmett/wl-pprint-terminfo/
+copyright:          Copyright (C) 2011 Edward A. Kmett
+synopsis:           A color pretty printer with terminfo support
+description:        A color pretty printer with terminfo support
+build-type:         Simple
+extra-source-files: cbits/cursed.h
 
 source-repository head
   type: git
   location: git://github.com/ekmett/wl-pprint-terminfo.git
+
+flag Cursed
+  manual: False
+  default: True
 
 library
 
@@ -24,9 +29,14 @@ library
     semigroups       >= 0.8   && < 0.9,
     containers       >= 0.4   && < 0.5,
     wl-pprint-extras >= 1.5   && < 1.6,
-    hscurses         >= 1.4   && < 1.5,
     terminfo         >= 0.3.2 && < 0.4,
     transformers     >= 0.2.2 && < 0.3
+
+  if flag(Cursed)
+    extra-libraries: curses
+    other-modules:
+      System.Console.Terminfo.PrettyPrint.Curses
+    cpp-options: -DCursed
 
   exposed-modules:
     System.Console.Terminfo.PrettyPrint

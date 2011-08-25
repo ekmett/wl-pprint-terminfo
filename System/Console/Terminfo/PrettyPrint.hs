@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 module System.Console.Terminfo.PrettyPrint
   ( 
   -- * Raw Effect (requires the effect be present)
@@ -59,10 +60,12 @@ import Data.List.NonEmpty (NonEmpty)
 import Control.Applicative
 import Control.Monad
 import Control.Monad.Trans.State
-import UI.HSCurses.Curses (initScr, scrSize, endWin)
 import Control.Monad.Trans.Class
 import Control.Exception (finally)
 import System.IO (stdout)
+#ifdef Cursed
+import System.Console.Terminfo.PrettyPrint.Curses
+#endif
 
 
 data ScopedEffect
@@ -198,11 +201,15 @@ evalTermState :: Monad m => StateT TermState m a -> m a
 evalTermState s = liftM fst $ runStateT s []
 
 kludgeWindowSize :: IO Int
+#ifdef Cursed
 kludgeWindowSize = do
    _ <- initScr
-   s <- snd <$> scrSize
+   s <- screenWidth
    s <$ guard (s >= 30 && s < 320)
  `finally` endWin
+#else
+kludgeWindowSize = fail "missing ncurses"
+#endif
 
 displayLn :: PrettyTerm t => t -> IO ()
 displayLn t = displayDoc 0.6 (prettyTerm t <> linebreak)
@@ -219,7 +226,7 @@ displayDoc' :: PrettyTerm t => Terminal -> Float -> t -> IO ()
 displayDoc' term ribbon doc = do
   cols <- kludgeWindowSize `mplus` 
           return (maybe 80 id (getCapability term termColumns))
-  displayDoc'' term ribbon cols doc
+  displayDoc'' term ribbon (cols - 1) doc
 
 displayDoc'' :: PrettyTerm t => Terminal -> Float -> Int -> t -> IO ()
 displayDoc'' term ribbon cols doc = 
