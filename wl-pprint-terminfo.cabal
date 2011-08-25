@@ -12,7 +12,6 @@ copyright:          Copyright (C) 2011 Edward A. Kmett
 synopsis:           A color pretty printer with terminfo support
 description:        A color pretty printer with terminfo support
 build-type:         Simple
-extra-source-files: cbits/cursed.h
 
 source-repository head
   type: git
