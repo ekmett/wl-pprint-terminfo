@@ -52,6 +52,8 @@ import System.Console.Terminfo.Color
 import System.Console.Terminfo.Effects
 import System.Console.Terminfo.Base
 import System.Console.Terminfo.Cursor
+import qualified Data.ByteString as Strict
+import qualified Data.ByteString.Lazy as Lazy
 import Data.Foldable (toList)
 import Data.Traversable
 import Data.Sequence (Seq)
@@ -246,12 +248,14 @@ instance PrettyTerm t => PrettyTerm [t] where
 
 instance PrettyTerm Char where 
   prettyTerm = char
-  prettyTermList = string
+  prettyTermList = prettyList
 
 instance HasEffect e => PrettyTerm (Doc e) where
   prettyTerm = fmap effect
   prettyTermList = list . map (fmap effect)
   
+instance PrettyTerm Strict.ByteString
+instance PrettyTerm Lazy.ByteString
 instance PrettyTerm Int 
 instance PrettyTerm Bool
 instance PrettyTerm Integer
