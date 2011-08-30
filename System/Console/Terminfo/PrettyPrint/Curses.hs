@@ -16,10 +16,10 @@ type Window = Ptr ()
 initScr :: IO Window
 initScr = throwIfNull "initscr" initscr
 
-foreign import ccall unsafe "curses.h initscr" initscr :: IO Window
+foreign import ccall unsafe "cursed.h initscr" initscr :: IO Window
 
 screenWidth :: IO Int
 screenWidth = fromIntegral <$> peek colsPtr
 
-foreign import ccall "curses.h &COLS" colsPtr :: Ptr CInt
-foreign import ccall unsafe "curses.h endwin" endWin :: IO CInt
+foreign import ccall "cursed.h &COLS" colsPtr :: Ptr CInt
+foreign import ccall unsafe "cursed.h endwin" endWin :: IO CInt

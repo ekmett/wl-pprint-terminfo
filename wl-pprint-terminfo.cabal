@@ -1,6 +1,6 @@
 name:               wl-pprint-terminfo
 category:           Control, Monads, Text
-version:            0.8
+version:            0.8.1
 cabal-version:      >= 1.6
 license:            BSD3
 license-file:       LICENSE
@@ -11,7 +11,13 @@ homepage:           git://github.com/ekmett/wl-pprint-terminfo/
 copyright:          Copyright (C) 2011 Edward A. Kmett
 synopsis:           A color pretty printer with terminfo support
 description:        A color pretty printer with terminfo support
-build-type:         Simple
+build-type:         Custom
+data-files: 
+  cbits/cursed.h 
+  wl-pprint-terminfo.buildinfo.in 
+  cbits/config.h.in
+  configure.ac
+  configure
 
 source-repository head
   type: git
@@ -22,6 +28,10 @@ flag Cursed
   default: True
 
 library
+  include-dirs: cbits . 
+  includes: cursed.h
+
+  extensions: CPP
 
   build-depends: 
     base             >= 4     && < 5,
@@ -33,7 +43,6 @@ library
     transformers     >= 0.2.2 && < 0.3
 
   if flag(Cursed)
-    extra-libraries: curses
     other-modules:
       System.Console.Terminfo.PrettyPrint.Curses
     cpp-options: -DCursed
@@ -41,4 +50,4 @@ library
   exposed-modules:
     System.Console.Terminfo.PrettyPrint
 
-  ghc-options:      -Wall 
+  ghc-options: -Wall 
