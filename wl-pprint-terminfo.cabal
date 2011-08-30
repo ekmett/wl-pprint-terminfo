@@ -43,11 +43,9 @@ library
     transformers     >= 0.2.2 && < 0.3
 
   if flag(Cursed)
-    other-modules:
-      System.Console.Terminfo.PrettyPrint.Curses
+    other-modules: System.Console.Terminfo.PrettyPrint.Curses
     cpp-options: -DCursed
 
-  exposed-modules:
-    System.Console.Terminfo.PrettyPrint
+  exposed-modules: System.Console.Terminfo.PrettyPrint
 
   ghc-options: -Wall 
