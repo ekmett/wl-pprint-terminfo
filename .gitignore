@@ -1,5 +1,6 @@
 .git
 dist
+autom4te.cache
 cbits/config.h
 config.log
 config.status
