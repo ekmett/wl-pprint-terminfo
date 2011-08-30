@@ -1,2 +1,9 @@
 .git
 dist
+cbits/config.h
+config.log
+config.status
+wl-pprint-terminfo.buildinfo
+*.o
+*.hi
+cabal-dev
