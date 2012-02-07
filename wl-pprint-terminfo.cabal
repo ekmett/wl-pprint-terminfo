@@ -12,9 +12,9 @@ copyright:          Copyright (C) 2011 Edward A. Kmett
 synopsis:           A color pretty printer with terminfo support
 description:        A color pretty printer with terminfo support
 build-type:         Custom
-data-files: 
-  cbits/cursed.h 
-  wl-pprint-terminfo.buildinfo.in 
+data-files:
+  cbits/cursed.h
+  wl-pprint-terminfo.buildinfo.in
   cbits/config.h.in
   configure.ac
   configure
@@ -28,12 +28,12 @@ flag Cursed
   default: True
 
 library
-  include-dirs: cbits . 
+  include-dirs: cbits .
   includes: cursed.h
 
   extensions: CPP
 
-  build-depends: 
+  build-depends:
     base             >= 4     && < 5,
     semigroups       >= 0.8   && < 0.9,
     containers       >= 0.4   && < 0.5,
@@ -48,4 +48,4 @@ library
 
   exposed-modules: System.Console.Terminfo.PrettyPrint
 
-  ghc-options: -Wall 
+  ghc-options: -Wall
