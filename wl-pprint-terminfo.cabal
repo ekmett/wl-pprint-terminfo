@@ -1,13 +1,14 @@
 name:               wl-pprint-terminfo
 category:           Control, Monads, Text
-version:            0.8.3.1
+version:            0.8.3.2
 cabal-version:      >= 1.6
 license:            BSD3
 license-file:       LICENSE
 author:             Edward A. Kmett
 maintainer:         Edward A. Kmett <ekmett@gmail.com>
 stability:          experimental
-homepage:           git://github.com/ekmett/wl-pprint-terminfo/
+homepage:           http://github.com/ekmett/wl-pprint-terminfo/
+bug-reports:        http://github.com/ekmett/wl-pprint-terminfo/issues
 copyright:          Copyright (C) 2011 Edward A. Kmett
 synopsis:           A color pretty printer with terminfo support
 description:        A color pretty printer with terminfo support
@@ -18,6 +19,7 @@ data-files:
   cbits/config.h.in
   configure.ac
   configure
+extra-source-files: .travis.yml
 
 source-repository head
   type: git
