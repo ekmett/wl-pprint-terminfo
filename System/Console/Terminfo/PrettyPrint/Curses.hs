@@ -7,7 +7,7 @@ module System.Console.Terminfo.PrettyPrint.Curses
 
 import Data.Functor
 import Foreign.Marshal.Error (throwIfNull)
-import Foreign.C.Types (CInt)
+import Foreign.C.Types (CInt(..))
 import Foreign.Ptr (Ptr)
 import Foreign.Storable (peek)
 
