@@ -1,6 +1,6 @@
 name:               wl-pprint-terminfo
 category:           Control, Monads, Text
-version:            3.0.1
+version:            3.3
 cabal-version:      >= 1.6
 license:            BSD3
 license-file:       LICENSE
@@ -19,7 +19,13 @@ data-files:
   cbits/config.h.in
   configure.ac
   configure
-extra-source-files: .travis.yml
+extra-source-files:
+  .travis.yml
+  .ghci
+  .gitignore
+  .vim.custom
+  CHANGELOG.markdown
+  README.markdown
 
 source-repository head
   type: git
@@ -38,10 +44,11 @@ library
 
   build-depends:
     base             == 4.*,
-    semigroups       >= 0.8.3.1 && < 0.9,
-    containers       >= 0.4     && < 0.6,
-    wl-pprint-extras >= 3.0     && < 3.3,
     bytestring       >= 0.9.1   && < 0.11,
+    containers       >= 0.4     && < 0.6,
+    nats             >= 0.1,
+    semigroups       >= 0.9,
+    wl-pprint-extras >= 3.3,
     terminfo         >= 0.3.2   && < 0.4,
     transformers     >= 0.2     && < 0.4
 
