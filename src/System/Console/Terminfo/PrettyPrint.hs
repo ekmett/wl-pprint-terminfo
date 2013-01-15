@@ -1,6 +1,6 @@
 {-# LANGUAGE CPP #-}
 module System.Console.Terminfo.PrettyPrint
-  ( 
+  (
   -- * Raw Effect (requires the effect be present)
     ScopedEffect(..)
   , with
@@ -61,6 +61,7 @@ import Numeric.Natural (Natural)
 import Data.List.NonEmpty (NonEmpty)
 import Control.Applicative
 import Control.Monad
+import Control.Monad.IO.Class
 import Control.Monad.Trans.State
 import Control.Monad.Trans.Class
 import Control.Exception (finally)
@@ -92,10 +93,10 @@ data Bell
   | AudibleBellPreferred
   deriving (Eq,Ord,Show,Enum)
 
-data Effect 
+data Effect
   = Push ScopedEffect
   | Pop
-  | Ring Bell -- visual bell ok, audible bell ok, 
+  | Ring Bell -- visual bell ok, audible bell ok,
   deriving (Eq)
 
 type TermState = [ScopedEffect]
@@ -109,7 +110,7 @@ eval (Push Reverse)        = modify (Reverse:) *> lift reverseOn
 eval (Push Protected)      = modify (Protected:) *> lift protectedOn
 eval (Push Bold)           = modify (Bold:) *> lift boldOn
 eval (Push (Foreground n)) = do
-  modify (Foreground n:) 
+  modify (Foreground n:)
   f <- lift setForegroundColor
   return (f n)
 eval (Push (Background n)) = do
@@ -127,18 +128,18 @@ eval (Ring b)              = case b of
   AudibleBellOnly -> lift $ tryTerm bell
   VisibleBellPreferred -> lift $ visualBell `mplus` tryTerm bell
   AudibleBellPreferred -> lift $ bell `mplus` tryTerm visualBell
-eval Pop = do 
+eval Pop = do
   ts <- get
   let ts' = drop 1 ts
   put ts'
-  flip mplus (replay ts') $ case ts of 
+  flip mplus (replay ts') $ case ts of
     Standout:_  -> lift exitStandoutMode
     Underline:_ -> lift exitUnderlineMode
     Nop:_       -> return mempty
     _           -> mzero
-  where 
-   replay xs = do 
-     l <- lift allAttributesOff 
+  where
+   replay xs = do
+     l <- lift allAttributesOff
      s <- get
      r <- foldr (<#>) mempty <$> traverse (eval . Push) (reverse xs)
      put s
@@ -166,7 +167,7 @@ foreground, background :: Color -> TermDoc -> TermDoc
 foreground n = with (soft (Foreground n))
 background n = with (soft (Background n))
 
-red, black, green, yellow, blue, magenta, cyan, white, blink, bold, underline, 
+red, black, green, yellow, blue, magenta, cyan, white, blink, bold, underline,
  standout, reversed, protected, invisible, dim :: TermDoc -> TermDoc
 
 blink      = with (soft Blink)
@@ -175,7 +176,7 @@ underline  = with (soft Underline)
 reversed   = with (soft Reverse)
 protected  = with (soft Protected)
 invisible  = with (soft Invisible)
-dim        = with (soft Dim) 
+dim        = with (soft Dim)
 standout   = with (soft Standout)
 
 red = foreground Red
@@ -194,7 +195,7 @@ displayCap = go where
   go (SText _ s x) = (termText s <#>) <$> go x
   go (SLine i x)   = (termText ('\n': spaces i) <#>) <$> go x
   go (SEffect e t) = (<#>) <$> eval e <*> go t
-    
+
 spaces :: Int -> String
 spaces n | n <= 0    = ""
          | otherwise = replicate n ' '
@@ -213,28 +214,28 @@ kludgeWindowSize = do
 kludgeWindowSize = fail "missing ncurses"
 #endif
 
-displayLn :: PrettyTerm t => t -> IO ()
+displayLn :: MonadIO m => PrettyTerm t => t -> m ()
 displayLn t = displayDoc 0.6 (prettyTerm t <> linebreak)
 
-display :: PrettyTerm t => t -> IO ()
+display :: (MonadIO m, PrettyTerm t) => t -> m ()
 display = displayDoc 0.6
 
-displayDoc :: PrettyTerm t => Float -> t -> IO ()
+displayDoc :: (MonadIO m, PrettyTerm t) => Float -> t -> m ()
 displayDoc ribbon doc = do
-  term <- setupTermFromEnv
+  term <- liftIO setupTermFromEnv
   displayDoc' term ribbon doc
 
-displayDoc' :: PrettyTerm t => Terminal -> Float -> t -> IO ()
+displayDoc' :: (MonadIO m, PrettyTerm t) => Terminal -> Float -> t -> m ()
 displayDoc' term ribbon doc = do
-  cols <- kludgeWindowSize `mplus` 
+  cols <- liftIO $ kludgeWindowSize `mplus`
           return (maybe 80 id (getCapability term termColumns))
   displayDoc'' term ribbon (cols - 1) doc
 
-displayDoc'' :: PrettyTerm t => Terminal -> Float -> Int -> t -> IO ()
-displayDoc'' term ribbon cols doc = 
+displayDoc'' :: (MonadIO m, PrettyTerm t) => Terminal -> Float -> Int -> t -> m ()
+displayDoc'' term ribbon cols doc =
   case getCapability term $ evalTermState $ displayCap sdoc of
-    Just output -> runTermOutput term output
-    Nothing     -> displayIO stdout sdoc
+    Just output -> liftIO $ runTermOutput term output
+    Nothing     -> liftIO $ displayIO stdout sdoc
   where sdoc = renderPretty ribbon cols (prettyTerm doc)
 
 class Pretty t => PrettyTerm t where
@@ -246,17 +247,17 @@ class Pretty t => PrettyTerm t where
 instance PrettyTerm t => PrettyTerm [t] where
   prettyTerm = prettyTermList
 
-instance PrettyTerm Char where 
+instance PrettyTerm Char where
   prettyTerm = char
   prettyTermList = prettyList
 
 instance HasEffect e => PrettyTerm (Doc e) where
   prettyTerm = fmap effect
   prettyTermList = list . map (fmap effect)
-  
+
 instance PrettyTerm Strict.ByteString
 instance PrettyTerm Lazy.ByteString
-instance PrettyTerm Int 
+instance PrettyTerm Int
 instance PrettyTerm Bool
 instance PrettyTerm Integer
 instance PrettyTerm Float
@@ -268,7 +269,7 @@ instance PrettyTerm a => PrettyTerm (Seq a) where
   prettyTerm = prettyTermList . toList
 
 instance PrettyTerm a => PrettyTerm (NonEmpty a) where
-  prettyTerm = prettyTermList . toList 
+  prettyTerm = prettyTermList . toList
 
 instance (PrettyTerm a,PrettyTerm b) => PrettyTerm (a,b) where
   prettyTerm (x,y) = tupled [prettyTerm x, prettyTerm y]
