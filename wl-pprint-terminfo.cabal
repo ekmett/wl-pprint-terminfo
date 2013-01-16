@@ -41,6 +41,7 @@ library
   includes: cursed.h
 
   extensions: CPP
+  other-extensions: TypeFamilies
 
   build-depends:
     base             == 4.*,

@@ -1,11 +1,11 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE TypeFamilies #-}
 module System.Console.Terminfo.PrettyPrint
   (
   -- * Raw Effect (requires the effect be present)
     ScopedEffect(..)
   , with
   , Effect(..) -- unpaired effects
-  , HasEffect(..)
   -- ** Graceful degradation
   , soft
   -- ** Effects (built with soft)
@@ -148,12 +148,6 @@ eval Pop = do
 type TermDoc = Doc Effect
 type SimpleTermDoc = SimpleDoc Effect
 
-class HasEffect e where
-  effect :: e -> Effect
-
-instance HasEffect Effect where
-  effect = id
-
 tryTerm :: MonadPlus m => m TermOutput -> m TermOutput
 tryTerm m = m `mplus` return mempty
 
@@ -251,9 +245,9 @@ instance PrettyTerm Char where
   prettyTerm = char
   prettyTermList = prettyList
 
-instance HasEffect e => PrettyTerm (Doc e) where
-  prettyTerm = fmap effect
-  prettyTermList = list . map (fmap effect)
+instance e ~ Effect => PrettyTerm (Doc e) where
+  prettyTerm = id
+  prettyTermList = list
 
 instance PrettyTerm Strict.ByteString
 instance PrettyTerm Lazy.ByteString
