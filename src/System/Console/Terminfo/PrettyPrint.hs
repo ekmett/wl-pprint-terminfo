@@ -52,8 +52,10 @@ import System.Console.Terminfo.Color
 import System.Console.Terminfo.Effects
 import System.Console.Terminfo.Base
 import System.Console.Terminfo.Cursor
-import qualified Data.ByteString as Strict
-import qualified Data.ByteString.Lazy as Lazy
+import qualified Data.ByteString as B
+import qualified Data.ByteString.Lazy as BL
+import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
 import Data.Int
 import Data.Word
 import Data.Foldable (toList)
@@ -251,8 +253,10 @@ instance e ~ Effect => PrettyTerm (Doc e) where
   prettyTerm = id
   prettyTermList = list
 
-instance PrettyTerm Strict.ByteString
-instance PrettyTerm Lazy.ByteString
+instance PrettyTerm B.ByteString
+instance PrettyTerm BL.ByteString
+instance PrettyTerm T.Text
+instance PrettyTerm TL.Text
 instance PrettyTerm Int
 instance PrettyTerm Int8
 instance PrettyTerm Int16

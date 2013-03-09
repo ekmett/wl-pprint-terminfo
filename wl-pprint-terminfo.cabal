@@ -49,9 +49,10 @@ library
     containers       >= 0.4     && < 0.6,
     nats             >= 0.1,
     semigroups       >= 0.9,
-    wl-pprint-extras >= 3.3,
+    wl-pprint-extras >= 3.4,
     terminfo         >= 0.3.2   && < 0.4,
-    transformers     >= 0.2     && < 0.4
+    transformers     >= 0.2     && < 0.4,
+    text             == 0.11.*
 
   if flag(Cursed)
     other-modules: System.Console.Terminfo.PrettyPrint.Curses
