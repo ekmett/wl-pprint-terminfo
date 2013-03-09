@@ -54,6 +54,8 @@ import System.Console.Terminfo.Base
 import System.Console.Terminfo.Cursor
 import qualified Data.ByteString as Strict
 import qualified Data.ByteString.Lazy as Lazy
+import Data.Int
+import Data.Word
 import Data.Foldable (toList)
 import Data.Traversable
 import Data.Sequence (Seq)
@@ -252,6 +254,15 @@ instance e ~ Effect => PrettyTerm (Doc e) where
 instance PrettyTerm Strict.ByteString
 instance PrettyTerm Lazy.ByteString
 instance PrettyTerm Int
+instance PrettyTerm Int8
+instance PrettyTerm Int16
+instance PrettyTerm Int32
+instance PrettyTerm Int64
+instance PrettyTerm Word
+instance PrettyTerm Word8
+instance PrettyTerm Word16
+instance PrettyTerm Word32
+instance PrettyTerm Word64
 instance PrettyTerm Bool
 instance PrettyTerm Integer
 instance PrettyTerm Float
