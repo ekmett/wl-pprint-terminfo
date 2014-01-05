@@ -32,6 +32,8 @@ source-repository head
   location: git://github.com/ekmett/wl-pprint-terminfo.git
 
 flag Cursed
+  description: Build with curses. Used to determine window width. Without
+               curses, width is always 80 columns.
   manual: False
   default: True
 
