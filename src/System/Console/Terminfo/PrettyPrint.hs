@@ -188,11 +188,11 @@ white = foreground White
 
 displayCap :: SimpleTermDoc -> StateT TermState Capability TermOutput
 displayCap = go where
-  go SEmpty        = return mempty
   go (SChar c x)   = (termText [c] <#>) <$> go x
   go (SText _ s x) = (termText s <#>) <$> go x
   go (SLine i x)   = (termText ('\n': spaces i) <#>) <$> go x
   go (SEffect e t) = (<#>) <$> eval e <*> go t
+  go _             = return mempty
 
 spaces :: Int -> String
 spaces n | n <= 0    = ""

@@ -1,3 +1,9 @@
+3.7.1
+-----
+* Responds more gracefully to `SFail`, which was added to `wl-pprint-terminfo`.
+* Added support for `terminfo` 0.4
+
+
 3.7
 ---
 * Added support for `text` 1.0
