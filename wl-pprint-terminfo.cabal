@@ -1,6 +1,6 @@
 name:               wl-pprint-terminfo
 category:           Control, Monads, Text
-version:            3.7.1.1
+version:            3.7.1.2
 cabal-version:      >= 1.6
 license:            BSD3
 license-file:       LICENSE
@@ -54,7 +54,7 @@ library
     wl-pprint-extras >= 3.4     && < 4,
     terminfo         >= 0.3.2   && < 0.5,
     transformers     >= 0.2     && < 0.5,
-    text             >= 0.11    && < 1.2
+    text             >= 0.11    && < 1.3
 
   if flag(Cursed)
     other-modules: System.Console.Terminfo.PrettyPrint.Curses
