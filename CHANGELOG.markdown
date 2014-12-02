@@ -1,3 +1,7 @@
+3.7.1.3
+-------
+* `nats` version 1 support
+
 3.7.1
 -----
 * Responds more gracefully to `SFail`, which was added to `wl-pprint-terminfo`.
